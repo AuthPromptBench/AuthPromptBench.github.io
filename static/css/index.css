@@ -602,6 +602,14 @@ body {
   gap: 1rem;
 }
 
+.dataset-results.is-animating.slide-left {
+  animation: datasetResultsSlideLeft 0.32s ease;
+}
+
+.dataset-results.is-animating.slide-right {
+  animation: datasetResultsSlideRight 0.32s ease;
+}
+
 .dataset-result-card {
   position: relative;
   display: grid;
@@ -982,6 +990,28 @@ body {
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes datasetResultsSlideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes datasetResultsSlideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 

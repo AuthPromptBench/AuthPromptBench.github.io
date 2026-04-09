@@ -125,6 +125,7 @@ function setupVideoCarouselAutoplay() {
 const datasetBrowserState = {
     datasetInfo: null,
     currentSplit: 'benchmark',
+    previousSplit: 'benchmark',
     recordsBySplit: {
         benchmark: [],
         full: []
@@ -306,12 +307,34 @@ function renderDatasetResults(datasetInfo) {
 
     resultsEl.innerHTML = pageItems.map(buildDatasetCard).join('');
     setDatasetStateVisibility({ results: true });
+    animateDatasetResults(resultsEl);
     bindDatasetImageLoading();
 
     const prevBtn = datasetEl('dataset-prev-btn');
     const nextBtn = datasetEl('dataset-next-btn');
     if (prevBtn) prevBtn.disabled = datasetBrowserState.currentPage <= 1;
     if (nextBtn) nextBtn.disabled = datasetBrowserState.currentPage >= totalPages;
+}
+
+function animateDatasetResults(resultsEl) {
+    if (!resultsEl) return;
+
+    const direction = datasetBrowserState.previousSplit === datasetBrowserState.currentSplit
+        ? 'none'
+        : datasetBrowserState.currentSplit === 'full'
+            ? 'slide-left'
+            : 'slide-right';
+
+    resultsEl.classList.remove('is-animating', 'slide-left', 'slide-right');
+
+    if (direction === 'none') return;
+
+    void resultsEl.offsetWidth;
+    resultsEl.classList.add('is-animating', direction);
+
+    window.setTimeout(() => {
+        resultsEl.classList.remove('is-animating', 'slide-left', 'slide-right');
+    }, 320);
 }
 
 function bindDatasetImageLoading() {
@@ -395,7 +418,9 @@ function updateSplitToggleUI() {
 
 function setDatasetSplit(split) {
     if (!datasetBrowserState.recordsBySplit[split]) return;
+    if (datasetBrowserState.currentSplit === split) return;
 
+    datasetBrowserState.previousSplit = datasetBrowserState.currentSplit;
     datasetBrowserState.currentSplit = split;
     datasetBrowserState.currentPage = 1;
     updateSplitToggleUI();
