@@ -1,0 +1,48 @@
+{
+  "full": {
+    "name": "full",
+    "num_rows": 17580,
+    "num_labels": 1000,
+    "rows_by_source": {
+      "lexica": 10000,
+      "civitai": 7580
+    },
+    "schema": [
+      "record_id",
+      "sample_id",
+      "source",
+      "label",
+      "index_in_label",
+      "image_url",
+      "prompt",
+      "negative_prompt",
+      "other_metadata"
+    ]
+  },
+  "benchmark": {
+    "name": "benchmark",
+    "num_rows": 2048,
+    "num_labels": 686,
+    "rows_by_source": {
+      "lexica": 1074,
+      "civitai": 974
+    },
+    "schema": [
+      "record_id",
+      "sample_id",
+      "source",
+      "label",
+      "image_url",
+      "prompt",
+      "negative_prompt",
+      "other_metadata",
+      "sentence_intent",
+      "challenge"
+    ],
+    "rows_by_challenge": {
+      "easy": 1554,
+      "medium": 238,
+      "hard": 256
+    }
+  }
+}

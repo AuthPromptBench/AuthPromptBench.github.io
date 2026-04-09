@@ -107,6 +107,7 @@
   <script defer src="static/js/fontawesome.all.min.js"></script>
   <script defer src="static/js/bulma-carousel.min.js"></script>
   <script defer src="static/js/bulma-slider.min.js"></script>
+  <script defer src="static/data/release/v1/browser_data.js"></script>
   <script defer src="static/js/index.js"></script>
   
   <!-- Structured Data for Academic Papers -->
@@ -248,6 +249,16 @@
                   </a>
                 </span>
 
+                <span class="link-block">
+                  <a href="#dataset-section"
+                  class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                    <i class="fas fa-database"></i>
+                  </span>
+                  <span>Dataset</span>
+                </a>
+              </span>
+
                 <!-- TODO: Update with your arXiv paper ID -->
                 <!-- <span class="link-block">
                   <a href="https://arxiv.org/abs/<ARXIV PAPER ID>" target="_blank"
@@ -308,6 +319,131 @@
   </div>
 </section>
 <!-- End paper abstract -->
+
+
+<!-- Dataset section -->
+<section class="section dataset-section" id="dataset-section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-four-fifths">
+        <div class="dataset-shell">
+          <div class="dataset-copy has-text-centered">
+            <span class="dataset-eyebrow">Dataset</span>
+            <h2 class="title is-3">Explore AP Bench</h2>
+            <p class="dataset-intro">
+              AP Bench is a curated benchmark of <strong>17,580 authentic prompt-image pairs</strong> collected from real-world web platforms, designed to study how prompt informativeness and generation stability vary across user prompts.
+            </p>
+          </div>
+
+          <div class="dataset-stats">
+            <article class="dataset-stat-card">
+              <p class="dataset-stat-value">17,580</p>
+              <p class="dataset-stat-label">Authentic prompt-image pairs</p>
+            </article>
+            <article class="dataset-stat-card">
+              <p class="dataset-stat-value">2,048</p>
+              <p class="dataset-stat-label">Curated benchmark samples</p>
+            </article>
+            <article class="dataset-stat-card">
+              <p class="dataset-stat-value">2</p>
+              <p class="dataset-stat-label">User groups: novice / expert</p>
+            </article>
+            <article class="dataset-stat-card">
+              <p class="dataset-stat-value">3</p>
+              <p class="dataset-stat-label">Challenge levels: easy / medium / hard</p>
+            </article>
+          </div>
+
+          <div class="dataset-actions">
+            <a class="button is-dark" href="./static/data/release/v1/README.md" target="_blank" rel="noopener noreferrer">
+              <span class="icon"><i class="fas fa-book"></i></span>
+              <span>Readme</span>
+            </a>
+            <a class="button is-dark is-outlined dataset-secondary-btn" href="./static/data/release/v1/benchmark.jsonl" target="_blank" rel="noopener noreferrer">
+              <span class="icon"><i class="fas fa-database"></i></span>
+              <span>Download Benchmark</span>
+            </a>
+          </div>
+
+          <div class="dataset-viewer-card">
+            <div class="dataset-viewer-header">
+              <div>
+                <p class="dataset-viewer-title">Interactive Benchmark Browser</p>
+                <p class="dataset-viewer-subtitle">Browse samples by prompt, intent, challenge level, and source.</p>
+              </div>
+              <div class="dataset-split-toggle" role="tablist" aria-label="Dataset split switch">
+                <button id="dataset-split-benchmark" class="dataset-split-btn is-active" type="button" data-split="benchmark">Benchmark</button>
+                <button id="dataset-split-full" class="dataset-split-btn" type="button" data-split="full">Full</button>
+              </div>
+            </div>
+
+            <div class="dataset-browser-controls">
+              <div class="dataset-control-group dataset-search-group">
+                <label for="dataset-search">Search prompt / intent / label</label>
+                <input id="dataset-search" class="dataset-control-input" type="search" placeholder="e.g. fountain, athlete, trash can">
+              </div>
+
+              <div class="dataset-control-group">
+                <label for="dataset-challenge-filter">Challenge</label>
+                <div class="select is-fullwidth">
+                  <select id="dataset-challenge-filter">
+                    <option value="all">All</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="dataset-control-group">
+                <label for="dataset-source-filter">Source</label>
+                <div class="select is-fullwidth">
+                  <select id="dataset-source-filter">
+                    <option value="all">All</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="dataset-control-group dataset-control-actions">
+                <label>Actions</label>
+                <div class="dataset-inline-actions">
+                  <button id="dataset-random-btn" class="button is-dark is-small" type="button">Random Sample</button>
+                  <button id="dataset-reset-btn" class="button is-light is-small" type="button">Reset</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="dataset-browser-summary">
+              <p id="dataset-status-text">Loading dataset preview...</p>
+              <div class="dataset-summary-pills">
+                <span class="dataset-pill" id="dataset-total-pill">Total: --</span>
+                <span class="dataset-pill" id="dataset-filtered-pill">Filtered: --</span>
+                <span class="dataset-pill" id="dataset-page-pill">Page: --</span>
+              </div>
+            </div>
+
+            <div class="dataset-viewer-frame dataset-browser-frame">
+              <div id="dataset-loading" class="dataset-state-message">Loading local benchmark preview...</div>
+              <div id="dataset-error" class="dataset-state-message is-hidden">Unable to load the local dataset preview.</div>
+              <div id="dataset-empty" class="dataset-state-message is-hidden">No samples match the current filter.</div>
+              <div id="dataset-results" class="dataset-results is-hidden"></div>
+            </div>
+
+            <div class="dataset-browser-footer">
+              <button id="dataset-prev-btn" class="button is-light is-small" type="button">Previous</button>
+              <button id="dataset-next-btn" class="button is-light is-small" type="button">Next</button>
+            </div>
+          </div>
+
+          <div class="dataset-notes">
+            <p>AP Bench covers 1,000 intent categories with class-level and sentence-level annotations for systematic evaluation.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- End dataset section -->
 
 
 <!-- Image carousel -->
@@ -465,6 +601,7 @@ preference optimization.
 </section> -->
 <!--End BibTex citation -->
 
+</main>
 
   <footer class="footer">
   <div class="container">
