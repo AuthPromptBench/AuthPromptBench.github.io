@@ -416,9 +416,10 @@ function updateSplitToggleUI() {
     });
 }
 
-function setDatasetSplit(split) {
+function setDatasetSplit(split, options = {}) {
+    const { force = false } = options;
     if (!datasetBrowserState.recordsBySplit[split]) return;
-    if (datasetBrowserState.currentSplit === split) return;
+    if (!force && datasetBrowserState.currentSplit === split) return;
 
     datasetBrowserState.previousSplit = datasetBrowserState.currentSplit;
     datasetBrowserState.currentSplit = split;
@@ -512,7 +513,7 @@ async function loadLocalDatasetBrowser() {
         datasetBrowserState.currentPage = 1;
 
         attachDatasetBrowserEvents();
-        setDatasetSplit('benchmark');
+        setDatasetSplit('benchmark', { force: true });
     } catch (error) {
         console.error('Failed to initialize local dataset browser:', error);
         setDatasetStateVisibility({ error: true });
