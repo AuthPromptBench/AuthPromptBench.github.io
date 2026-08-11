@@ -1,127 +1,47 @@
-# Authentic Prompt Benchmark (AP Bench)
+# APBench data card
 
-Authentic Prompt Benchmark (AP Bench) is a real-world text-to-image prompt dataset and benchmark for studying **prompt informativeness**, **intent preservation**, and **generation stability** under realistic user prompting scenarios. It is built from authentic prompt–image pairs collected from public web repositories and is designed to better reflect the diversity, ambiguity, and uneven quality of practical user inputs than synthetic or manually constructed benchmarks.
+## Included file
 
-The release contains a large full dataset for browsing and analysis, together with a curated benchmark subset for standardized evaluation. In the accompanying paper, AP Bench contains **17,580** authentic prompt–image pairs in total and a curated benchmark subset of **2,048** samples. The benchmark is organized around **1,000 intent categories**, and the released benchmark subset covers **742** labels. 
+`data/benchmark/auth_prompt_V1_0_0.json` is the only benchmark data file included in this supplement.
 
-## Why AP Bench?
+- Records: 2,048
+- File size: 2,099,029 bytes
+- SHA-256: `06f616734fd45d8d2cc2f523b7d7034e957fa6a89ca08f520ed5d95c0c5266c1`
+- Format: UTF-8 JSON array
 
-Existing text-to-image evaluations often emphasize prompt–image alignment, aesthetics, or compositional reasoning, but they do not directly focus on how well **authentic user prompts** convey underlying user intent. AP Bench is introduced to support research on this problem by benchmarking prompt optimization methods under realistic prompting conditions, including prompts written by both novice and expert users. 
+Distribution summary:
 
-The benchmark is motivated by three common sources of prompt-induced instability discussed in the paper:
+| Field | Counts |
+|---|---|
+| `user_type` | novice: 1,074; expert: 974 |
+| `challenge` | easy: 1,554; medium: 238; hard: 256 |
+| `class` | intent_confirmed_all: 1,554; intent_confirmed_prompt_only: 238; intent_not_confirmed: 256 |
+| `subject_clear` | true: 1,792; false: 256 |
+| source URL domain | Lexica: 1,074; Civitai: 974 |
 
-- **Informational sparsity**: prompts are too short or underspecified.
-- **Semantic imprecision and incompleteness**: prompts miss key constraints or intent details.
-- **Lexical perturbation and noise sensitivity**: typos or noisy wording distort model understanding. 
+## Record schema
 
-## Dataset Construction
+Each record can contain:
 
-AP Bench is constructed from authentic prompts collected from real-world web platforms. Following the paper, prompts from **Lexica** are used as an initial source of **novice-style** prompts because they are typically shorter and less informative, while prompts from **Civitai** are used as an initial source of **expert-style** prompts because they more often contain richer semantic details and explicit attributes. These prompts are then manually annotated and re-verified. 
+`id`, `index`, `image_url`, `prompt`, `negative_prompt`, `width`, `height`, `llm_score`, `clip_score`, `vqa_score`, `image_score`, `class`, `challenge`, `user_type`, `intent`, `subject_clear`, `sentence_intent`, and `other_metadata`.
 
-The annotation and verification process is designed to ensure that:
+`challenge` is the authoritative difficulty annotation (`easy`, `medium`, or `hard`). Evaluation summaries read this field directly and do not infer difficulty from `class`.
 
-1. novice and expert prompts match their intended styles,
-2. both **class-level intent** and **sentence-level intent** are available, and
-3. the associated images are filtered for ethical compliance, safety, and the absence of sensitive content. 
+`image_url` is provenance metadata pointing to a publicly accessible source page or image endpoint. No image binaries are redistributed. `other_metadata` contains generation settings such as sampler, step count, guidance scale, and seed; it contains no local filesystem paths or account identifiers in this release.
 
-Each intent category contains up to 10 instances, and each instance may include the user prompt, generated image URL, generation parameters, and auxiliary metadata. 
+## Privacy and content considerations
 
-## Benchmark Difficulty Levels
+The release was scanned for email addresses, personal filesystem paths, account identifiers, and embedded credentials. None were detected. Prompts originate from public text-to-image platforms and may mention public figures, artists, fictional characters, adult themes, or other material present in the original public prompt corpus. Users should review prompts for the requirements of their institution and deployment context.
 
-The curated benchmark subset is stratified into three challenge levels based on intent clarity and category coverage: 
+The stable UUIDs and source URLs are retained for provenance and reproducibility. They are not author or contributor identifiers.
 
-- **easy**: the user intent is explicit and the category belongs to the predefined category set.
-- **medium**: the user intent remains explicit, but the category falls outside the predefined category set.
-- **hard**: the category belongs to the predefined set, but the user intent is ambiguous. 
+## Licensing and redistribution
 
+Repository code is covered by the top-level `LICENSE`. Source platforms, linked images, model weights, and external benchmarks retain their own terms. This supplement does not grant rights to linked images or third-party model weights. Before public redistribution beyond the paper-review system, confirm that distribution of the benchmark text and metadata is consistent with the source-platform terms and the paper's data-collection protocol.
 
-## Files
+## Integrity check
 
-This release is organized as follows: 
-
-- `full.jsonl`: full dataset for browsing, search, and large-scale analysis.
-- `benchmark.jsonl`: curated benchmark subset for evaluation.
-- `dataset_info.json`: dataset summary statistics and schema description.
-
-## Dataset Summary
-
-- **Full dataset rows**: 17,580
-- **Full dataset labels**: 1,000
-- **Benchmark rows**: 2,048
-- **Benchmark labels**: 742 
-
-## Schema
-
-### Full Dataset Schema
-
-Fields in `full.jsonl`: 
-
-- `record_id`
-- `sample_id`
-- `source`: the original platform or collection source for each sample.
-- `label`
-- `index_in_label`
-- `image_url`
-- `prompt`
-- `negative_prompt`
-- `other_metadata`
-
-### Benchmark Schema
-
-Fields in `benchmark.jsonl`: 
-
-- `record_id`
-- `sample_id`
-- `source`: the original platform or collection source for each sample.
-- `user_type`: novice or expert user prompt style
-- `label`: class-level intent category
-- `image_url`
-- `prompt`
-- `negative_prompt`
-- `other_metadata`
-- `sentence_intent`: sentence-level intent description
-- `challenge`
-
-## Intended Use
-
-AP Bench is intended for research on:
-
-- prompt optimization for text-to-image generation,
-- prompt informativeness and uncertainty analysis,
-- intent preservation under authentic user prompting,
-- robustness to ambiguous, underspecified, or noisy prompts, and
-- benchmarking user-side prompt refinement methods.
-
-The benchmark is especially suitable for evaluating methods that aim to improve generation stability from real user prompts rather than only improving aesthetics or superficial prompt–image alignment.
-
-## Evaluation Perspective
-
-According to the paper, AP Bench is designed around a multi-level evaluation view spanning prompt properties and end-to-end generation quality. The core metrics discussed in the paper include:
-
-- **mutual information / alignment-oriented metrics** for end-to-end intent preservation,
-- **prompt entropy** for prompt informativeness and uncertainty,
-- **prompt energy** for model confidence with respect to the prompt, and
-- **MLLM-based scoring / human evaluation** for fine-grained semantic and perceptual assessment. 
- 
-
-## Notes
-
-- `source` records the original platform or collection source for each sample.
-- `label` corresponds to the associated intent category.
-- `sentence_intent` is only available in the benchmark subset and provides a finer-grained natural-language intent description for evaluation. This follows the paper’s design choice to include both class-level and sentence-level intent annotations.
-- `other_metadata` can store auxiliary generation-related information.
-
-<!-- ## Citation
-
-If you use AP Bench in your research, please cite the accompanying paper.
-
-```bibtex
-@inproceedings{apbench2026,
-  title={Prompt Stability Matters: A Benchmark for Quantifying Prompt Informativeness and Stability in Text-to-Image Models},
-  author={Anonymous Author(s)},
-  booktitle={Proceedings of ACM Multimedia},
-  year={2026}
-}
+```bash
+shasum -a 256 data/benchmark/auth_prompt_V1_0_0.json
+python -m json.tool data/benchmark/auth_prompt_V1_0_0.json >/dev/null
 ```
-
-If you plan to make the repository public after review, replace the anonymous citation entry with the final camera-ready metadata. -->

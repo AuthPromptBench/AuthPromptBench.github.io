@@ -201,12 +201,11 @@ function buildBenchmarkDatasetCard(record) {
     const classIntent = escapeHtml(classIntentRaw || '--');
     const sentenceIntent = escapeHtml(record.sentence_intent || 'Not provided');
     const sourceRaw = String(record.source || 'unknown').trim().toLowerCase();
+    const userTypeRaw = String(record.user_type || 'unknown').trim().toLowerCase();
     const challenge = escapeHtml(record.challenge || 'unknown');
     const imageUrl = escapeHtml(record.thumbnail_url || record.image_url || '');
-    const sourceDisplay = escapeHtml(
-        sourceRaw === 'lexica' ? 'NOVICE' : sourceRaw === 'civitai' ? 'EXPERT' : String(record.source || 'unknown').toUpperCase()
-    );
-    const sourceTooltip = escapeHtml(`source: ${sourceRaw || 'unknown'}`);
+    const userTypeDisplay = escapeHtml(userTypeRaw.toUpperCase());
+    const sourceTooltip = escapeHtml(`source: ${sourceRaw}`);
     const challengeDisplay = escapeHtml(record.challenge ? record.challenge.toUpperCase() : 'N/A');
 
     return `
@@ -239,7 +238,7 @@ function buildBenchmarkDatasetCard(record) {
 
           <div class="dataset-meta-row">
             <div class="dataset-meta-row-benchmark">
-              <span class="dataset-tag dataset-source-chip" data-tooltip="${sourceTooltip}">${sourceDisplay}</span>
+              <span class="dataset-tag dataset-user-type-chip" data-tooltip="${sourceTooltip}">${userTypeDisplay}</span>
               <span class="dataset-tag challenge-${challenge}">${challengeDisplay}</span>
             </div>
           </div>
@@ -359,7 +358,7 @@ function bindDatasetImageLoading() {
 function applyDatasetFilters(datasetInfo) {
     const searchTerm = (datasetEl('dataset-search')?.value || '').trim().toLowerCase();
     const challengeValue = datasetEl('dataset-challenge-filter')?.value || 'all';
-    const sourceValue = datasetEl('dataset-source-filter')?.value || 'all';
+    const userTypeValue = datasetEl('dataset-user-type-filter')?.value || 'all';
     const currentRecords = datasetBrowserState.recordsBySplit[datasetBrowserState.currentSplit] || [];
 
     datasetBrowserState.filteredRecords = currentRecords.filter(record => {
@@ -367,34 +366,20 @@ function applyDatasetFilters(datasetInfo) {
             record.prompt,
             record.sentence_intent,
             record.label,
+            record.user_type,
             record.source,
             record.sample_id
         ].join(' ').toLowerCase();
 
         const matchesSearch = !searchTerm || searchHaystack.includes(searchTerm);
         const matchesChallenge = challengeValue === 'all' || record.challenge === challengeValue;
-        const matchesSource = sourceValue === 'all' || record.source === sourceValue;
+        const matchesUserType = userTypeValue === 'all' || record.user_type === userTypeValue;
 
-        return matchesSearch && matchesChallenge && matchesSource;
+        return matchesSearch && matchesChallenge && matchesUserType;
     });
 
     datasetBrowserState.currentPage = 1;
     renderDatasetResults(datasetInfo);
-}
-
-function populateSourceFilter(records) {
-    const sourceSelect = datasetEl('dataset-source-filter');
-    if (!sourceSelect) return;
-
-    const sources = Array.from(new Set(records.map(record => record.source).filter(Boolean))).sort();
-    sourceSelect.innerHTML = '<option value="all">All</option>';
-
-    sources.forEach(source => {
-        const option = document.createElement('option');
-        option.value = source;
-        option.textContent = source;
-        sourceSelect.appendChild(option);
-    });
 }
 
 function updateChallengeFilterForSplit(split) {
@@ -407,6 +392,19 @@ function updateChallengeFilterForSplit(split) {
 
     if (!supportsChallenge) {
         challengeSelect.value = 'all';
+    }
+}
+
+function updateUserTypeFilterForSplit(split) {
+    const userTypeSelect = datasetEl('dataset-user-type-filter');
+    if (!userTypeSelect) return;
+
+    const supportsUserType = split === 'benchmark';
+    userTypeSelect.disabled = !supportsUserType;
+    userTypeSelect.closest('.select')?.classList.toggle('is-disabled', !supportsUserType);
+
+    if (!supportsUserType) {
+        userTypeSelect.value = 'all';
     }
 }
 
@@ -426,7 +424,7 @@ function setDatasetSplit(split, options = {}) {
     datasetBrowserState.currentPage = 1;
     updateSplitToggleUI();
     updateChallengeFilterForSplit(split);
-    populateSourceFilter(datasetBrowserState.recordsBySplit[split]);
+    updateUserTypeFilterForSplit(split);
     applyDatasetFilters(datasetBrowserState.datasetInfo);
 }
 
@@ -434,12 +432,12 @@ function attachDatasetBrowserEvents() {
     const triggerFilter = () => applyDatasetFilters(datasetBrowserState.datasetInfo);
     datasetEl('dataset-search')?.addEventListener('input', triggerFilter);
     datasetEl('dataset-challenge-filter')?.addEventListener('change', triggerFilter);
-    datasetEl('dataset-source-filter')?.addEventListener('change', triggerFilter);
+    datasetEl('dataset-user-type-filter')?.addEventListener('change', triggerFilter);
 
     datasetEl('dataset-reset-btn')?.addEventListener('click', () => {
         if (datasetEl('dataset-search')) datasetEl('dataset-search').value = '';
         if (datasetEl('dataset-challenge-filter')) datasetEl('dataset-challenge-filter').value = 'all';
-        if (datasetEl('dataset-source-filter')) datasetEl('dataset-source-filter').value = 'all';
+        if (datasetEl('dataset-user-type-filter')) datasetEl('dataset-user-type-filter').value = 'all';
         applyDatasetFilters(datasetBrowserState.datasetInfo);
     });
 
@@ -475,13 +473,14 @@ async function resolveDatasetPayload() {
         return window.APBenchBrowserData;
     }
 
-    const [infoResponse, benchmarkResponse, fullResponse] = await Promise.all([
+    const [infoResponse, benchmarkPreviewResponse, benchmarkResponse, fullResponse] = await Promise.all([
         fetch('static/data/release/v1/dataset_info.json'),
         fetch('static/data/release/v1/benchmark_with_thumbnail.jsonl'),
+        fetch('static/data/release/v1/benchmark.jsonl'),
         fetch('static/data/release/v1/full.jsonl')
     ]);
 
-    if (!infoResponse.ok || !benchmarkResponse.ok || !fullResponse.ok) {
+    if (!infoResponse.ok || !benchmarkPreviewResponse.ok || !benchmarkResponse.ok || !fullResponse.ok) {
         throw new Error('Dataset assets could not be fetched.');
     }
 
@@ -491,9 +490,18 @@ async function resolveDatasetPayload() {
         .filter(Boolean)
         .map(line => JSON.parse(line));
 
+    const benchmarkPreview = parseJsonl(await benchmarkPreviewResponse.text());
+    const benchmarkMetadata = parseJsonl(await benchmarkResponse.text());
+    const metadataBySampleId = new Map(
+        benchmarkMetadata.map(record => [record.sample_id, record])
+    );
+
     return {
         info: await infoResponse.json(),
-        benchmark: parseJsonl(await benchmarkResponse.text()),
+        benchmark: benchmarkPreview.map(record => ({
+            ...metadataBySampleId.get(record.sample_id),
+            ...record
+        })),
         full: parseJsonl(await fullResponse.text())
     };
 }
